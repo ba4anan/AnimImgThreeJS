@@ -14,7 +14,37 @@
 		<script>
 // Create the scene and a camera to view it
 var scene = new THREE.Scene();
+function throttle(func, wait) {
+    var args,
+        result,
+        thisArg,
+        timeoutId,
+        lastCalled = 0;
 
+    function trailingCall() {
+      lastCalled = new Date;
+      timeoutId = null;
+      result = func.apply(thisArg, args);
+    }
+
+    return function() {
+      var now = new Date,
+          lastCalled = lastCalled || new Date,
+          remain = wait - (now - lastCalled);
+
+      args = arguments;
+      thisArg = this;
+
+      if (remain <= 0) {
+        lastCalled = now;
+        result = func.apply(thisArg, args);
+      }
+      else if (!timeoutId) {
+        timeoutId = setTimeout(trailingCall, remain);
+      }
+      return result;
+    };
+}
 /**
 * Camera
 **/
@@ -45,13 +75,17 @@ camera.position.z = 5;
 **/
 
 // Create the canvas with a renderer
-var renderer = new THREE.WebGLRenderer({antialias: true});
+var renderer = new THREE.WebGLRenderer();
+effect = new THREE.AsciiEffect(renderer,' .*o❆#XЖ',{invert:true});
+			effect.setSize( window.innerWidth, window.innerHeight );
+			effect.domElement.style.color = 'white';
+			effect.domElement.style.backgroundColor = 'black';
+			document.body.appendChild( effect.domElement );
 
 // Specify the size of the canvas
 renderer.setSize( window.innerWidth, window.innerHeight );
 
-// Add the canvas to the DOM
-document.body.appendChild( renderer.domElement );
+
 
 /**
 * Image
@@ -67,7 +101,7 @@ var material = new THREE.MeshLambertMaterial({
 
 // create a plane geometry for the image with a width of 10
 // and a height that preserves the image's aspect ratio
-var geometry = new THREE.PlaneGeometry(10, 1);
+var geometry = new THREE.PlaneGeometry(10, 10*.55);
 
 // combine our image geometry and material into a mesh
 var mesh = new THREE.Mesh(geometry, material);
@@ -101,22 +135,24 @@ mesh.position.y = 4.5;
 
 
 // The main animation function that re-renders the scene each animation frame
-function animate(time) {
-	time *=2;
-requestAnimationFrame( animate );
+//throttle (
+	function animate () {
+	requestAnimationFrame( slowanim );
 	
-	if (mesh.position.y < -4.2){mesh.position.y = 4.5;}
+	
+
+	
+	if (mesh.position.y < -4.3){mesh.position.y = 4.5;}
 		
-	else{mesh.position.y -= 0.01}
+	else {
+	mesh.position.y -= 1;}
 	console.log (mesh.position.y);
-	
-	
-	
-	
-  renderer.render( scene, camera );
-}
-//animate();
-requestAnimationFrame( animate );
+	effect.render( scene, camera );
+
+	};
+	const slowanim= throttle(animate, 1000);
+
+	animate();
 </script>
 	</body>
 </html>
